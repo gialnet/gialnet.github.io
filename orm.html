@@ -223,6 +223,17 @@ public class TuplasIVA {
 </code></pre>
 
 <h3>
+<a id="authors-and-contributors" class="anchor" href="#Ejemplo de uso" aria-hidden="true">
+    <span class="octicon octicon-link"></span></a>example of use</h3>
+
+<p>Example of use in an html response, more easy and fast</p>
+
+<pre><code class="language-java">
+List<TuplasIVA> Tuplas = new SQLiva(xDataBase).getListaIVA(Integer.parseInt(pagina), Integer.parseInt(size), xYear );
+                    
+                response.getWriter().write(gson.toJson(Tuplas));
+</code></pre>
+<h3>
 
 
         </section>
