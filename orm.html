@@ -150,6 +150,79 @@ public class TuplasIVA {
 
 </code></pre>
 <h3>
+<a id="authors-and-contributors" class="anchor" href="#SQLobjectofcontrol" aria-hidden="true">
+    <span class="octicon octicon-link"></span></a>SQL object of control</h3>
+
+<p>A simple pojo object to control the qwery</p>
+
+<pre><code class="language-java">
+
+    public class SQLiva extends PoolConn {
+    
+    private final String version;
+
+    public SQLiva(String DataBase) throws SQLException, NamingException {
+        super(DataBase);
+        this.version=DataBase;
+    }
+
+    
+    public List<TuplasIVA> getListaIVA(int NumPage,int SizePage, String xYear) 
+            throws SQLException, NamingException {
+
+        
+        Connection conn = PGconectar();
+
+        List<TuplasIVA> Tuplas = new ArrayList<>();
+
+        try {
+
+            // limit 10
+            // SizePage * (NumPage-1)
+            // 0,10,20,30
+            int Offset=SizePage * (NumPage-1);
+            //st = conn.createStatement();
+            PreparedStatement st = conn.prepareStatement("SELECT D.id, D.importe AS total, naturaleza, NRC, year_fiscal, periodo FROM leg_detalle D, leg_obligaciones O WHERE o.id=d.id_leg and O.naturaleza IN ('Modelo 303-IVA','Modelo 390: resumen 303') and O.year_fiscal=? ORDER BY naturaleza,year_fiscal,periodo DESC LIMIT ? OFFSET ?");
+            st.setString(1, xYear);
+            st.setInt(2, SizePage);
+            st.setInt(3, Offset);
+            
+            
+            ResultSet rs = st.executeQuery();
+
+
+            while (rs.next()) {
+
+                Tuplas.add(new TuplasIVA.Builder().
+                        Id(rs.getInt("id")).
+                        Importe(rs.getBigDecimal("total")).
+                        Naturaleza(rs.getString("naturaleza")).
+                        NRC(rs.getString("nrc")).
+                        Year_fiscal(rs.getString("year_fiscal")).
+                        Periodo(rs.getString("periodo")).
+                        build(Locale.GERMANY)
+                            );
+
+            }
+            
+            st.close();
+
+        } catch (SQLException e) {
+
+            System.out.println("IVA Connection Failed!");
+            return null;
+
+        } finally {
+
+            conn.close();
+        }
+        return Tuplas;
+    }
+    
+}
+</code></pre>
+
+<h3>
 
 
         </section>
