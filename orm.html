@@ -170,52 +170,44 @@ public class TuplasIVA {
     public List<TuplasIVA> getListaIVA(int NumPage,int SizePage, String xYear) 
             throws SQLException, NamingException {
 
-        
-        Connection conn = PGconectar();
-
         List<TuplasIVA> Tuplas = new ArrayList<>();
 
-        try {
+        try (Connection conn = PGconectar()) {
 
-            // limit 10
-            // SizePage * (NumPage-1)
-            // 0,10,20,30
             int Offset=SizePage * (NumPage-1);
-            //st = conn.createStatement();
-            PreparedStatement st = conn.prepareStatement("SELECT D.id, D.importe AS total, naturaleza, NRC, year_fiscal, periodo FROM leg_detalle D, leg_obligaciones O WHERE o.id=d.id_leg and O.naturaleza IN ('Modelo 303-IVA','Modelo 390: resumen 303') and O.year_fiscal=? ORDER BY naturaleza,year_fiscal,periodo DESC LIMIT ? OFFSET ?");
+
+            try (PreparedStatement st = conn.prepareStatement("SELECT D.id, D.importe AS total, naturaleza, NRC, year_fiscal, periodo FROM leg_detalle D, leg_obligaciones O WHERE o.id=d.id_leg and O.naturaleza IN ('Modelo 303-IVA','Modelo 390: resumen 303') and O.year_fiscal=? ORDER BY naturaleza,year_fiscal,periodo DESC LIMIT ? OFFSET ?"))
+            {
             st.setString(1, xYear);
             st.setInt(2, SizePage);
             st.setInt(3, Offset);
             
             
-            ResultSet rs = st.executeQuery();
+            try (ResultSet rs = st.executeQuery()) {
 
+                    while (rs.next()) {
 
-            while (rs.next()) {
+                        Tuplas.add(new TuplasIVA.Builder().
+                                Id(rs.getInt("id")).
+                                Importe(rs.getBigDecimal("total")).
+                                Naturaleza(rs.getString("naturaleza")).
+                                NRC(rs.getString("nrc")).
+                                Year_fiscal(rs.getString("year_fiscal")).
+                                Periodo(rs.getString("periodo")).
+                                build(Locale.GERMANY)
+                                    );
 
-                Tuplas.add(new TuplasIVA.Builder().
-                        Id(rs.getInt("id")).
-                        Importe(rs.getBigDecimal("total")).
-                        Naturaleza(rs.getString("naturaleza")).
-                        NRC(rs.getString("nrc")).
-                        Year_fiscal(rs.getString("year_fiscal")).
-                        Periodo(rs.getString("periodo")).
-                        build(Locale.GERMANY)
-                            );
-
+                    }
+              }
             }
-            
-            st.close();
 
         } catch (SQLException e) {
 
-            System.out.println("IVA Connection Failed!");
+            System.out.println("IVA Connection Failed!" + e.getMessage());
             return null;
 
-        } finally {
-
-            conn.close();
         }
+        
         return Tuplas;
     }
     
