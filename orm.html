@@ -172,16 +172,15 @@ public class TuplasIVA {
 
         List<TuplasIVA> Tuplas = new ArrayList<>();
 
-        try (Connection conn = PGconectar()) {
+        try (Connection conn = PGconectar();
+            PreparedStatement st = 
+            conn.prepareStatement("SELECT D.id, D.importe AS total, naturaleza, NRC, year_fiscal, periodo FROM leg_detalle D, leg_obligaciones O WHERE o.id=d.id_leg and O.naturaleza IN ('Modelo 303-IVA','Modelo 390: resumen 303') and O.year_fiscal=? ORDER BY naturaleza,year_fiscal,periodo DESC LIMIT ? OFFSET ?")) 
+        {
 
             int Offset=SizePage * (NumPage-1);
-
-            try (PreparedStatement st = conn.prepareStatement("SELECT D.id, D.importe AS total, naturaleza, NRC, year_fiscal, periodo FROM leg_detalle D, leg_obligaciones O WHERE o.id=d.id_leg and O.naturaleza IN ('Modelo 303-IVA','Modelo 390: resumen 303') and O.year_fiscal=? ORDER BY naturaleza,year_fiscal,periodo DESC LIMIT ? OFFSET ?"))
-            {
             st.setString(1, xYear);
             st.setInt(2, SizePage);
             st.setInt(3, Offset);
-            
             
             try (ResultSet rs = st.executeQuery()) {
 
@@ -198,7 +197,6 @@ public class TuplasIVA {
                                     );
 
                     }
-              }
             }
 
         } catch (SQLException e) {
